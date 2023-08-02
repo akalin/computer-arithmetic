@@ -71,19 +71,24 @@ I'd rewrite it as
 \State $k ← \lceil n / 2 \rceil$
 \State \((a_1, a_0) ← (a.\operatorname{slice}(k, n), a.\operatorname{slice}(0, k))\)
 \State \((b_1, b_0) ← (b.\operatorname{slice}(k, n), b.\operatorname{slice}(0, k))\)
-\State \((s_a, d_a) ← (\operatorname{sign}(a_0 - a_1), \lvert a_0 - a_1 \rvert)\)
-\State \((s_b, d_b) ← (\operatorname{sign}(b_0 - b_1), \lvert b_0 - b_1 \rvert)\)
+\State \((s_a, d_a) ← a_0 - a_1\)
+\Comment Destructure the subtraction result into its sign and magnitude.
+\State \((s_b, d_b) ← b_0 - b_1\)
 \State \(c_0 ← \operatorname{KaratsubaMultiply}(a_0, b_0)\)
 \State \(c_2 ← \operatorname{KaratsubaMultiply}(a_1, b_1)\)
 \State \(t_0 ← c_0 + c_2\)
 \State \(t_1 ← \operatorname{KaratsubaMultiply}(d_a, d_b)\)
 \If {\(s_a s_b > 0\)}
-\State \(t_0 ← t_0 - t_1\)
+\State \(t_0 \mathrel{-}= t_1\)
 \Comment guaranteed to be non-negative.
 \Else
-\State \(t_0 ← t_0 + t_1\)
+\State \(t_0 \mathrel{+}= t_1\)
 \EndIf
-\State return \(c_2 β^{2k} + t_0 β^k + c_0\)
+\State \(c ← \operatorname{NewArray}(\operatorname{fill}=0, \operatorname{length}=2n)\)
+\State \(c \mathrel{+}= c_0\)
+\State \(c.\operatorname{slice}(k, 2n) \mathrel{+}= t_0\)
+\State \(c.\operatorname{slice}(2k, 2n) \mathrel{+}= c_2\)
+\State return \(c\)
 \end{algorithmic}
 \end{algorithm}
 
