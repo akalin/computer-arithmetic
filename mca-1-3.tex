@@ -55,6 +55,11 @@
   and a definition (\(:=\)) is.
 \item It's probably better to name \(C_2\) as \(t\) and \(C_1\) as
   \(C_2\) to be consistent with Toom-Cook.
+\item The correctness proof is implicitly a proof by (complete) induction.
+\item The proof of the running time is a bit unclear, but you can just
+  appeal to
+  \href{https://en.wikipedia.org/wiki/Master_theorem_(analysis_of_algorithms)#Generic_form}{the
+    master theorem} to get a running time of \(Θ(n^{\lg 3})\).
 \end{itemize}
 
 I'd rewrite it as
