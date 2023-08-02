@@ -1,0 +1,96 @@
+\documentclass{computer-arithmetic}
+
+\usepackage{computer-arithmetic}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\begin{document}
+
+\section{Notes on Algorithm~1.3}
+
+\begin{itemize}
+\item The input line
+  \[
+    A = \sum_0^{n-1} a_i β^i \qquad \text{and} \qquad
+    B = \sum_0^{n-1} b_i β^i
+  \]
+  is defining two sets of things:
+  \begin{itemize}
+  \item the integers \(A\) and \(B\), and
+  \item their respective unique base-\(β\) digits, which would
+    conventionally be written
+    \[
+      a_{n-1} a_{n-2} \dotso a_1 a_0 \qquad \text{and} \qquad
+      b_{n-1} b_{n-2} \dotso b_1 b_0\text{,}
+    \]
+    with the given equations relating the two. A computer program
+    would normally represent two inputs in array-like structures of
+    length~\(n\), where e.g. the \(i\)th element of the array
+    \(\mathbf{A}\) would hold \(a_i\).
+  \end{itemize}
+\item The output line
+  \[
+    C = ∑_0^{2n-1} c_k β^k
+  \]
+  is similarly defining the integer \(C\) and its unique base-\(β\)
+  representation
+  \[
+    c_{2n-1} c_{2n-2} \dotso c_1 c_0\text{.}
+  \]
+  Note that it's implicitly saying that \(C\) can have at most \(2n\)
+  base-\(β\) digits.
+\item The line
+  \[
+    (A_0, B_0) := (A, B) \bmod β^k, (A_1, B_1) := (A, B) \operatorname{div} β^k
+  \]
+  is perhaps better written as:
+  \begin{align*}
+    A_1 &:= a_{n-1} \dotso a_k \\
+    B_1 &:= b_{n-1} \dotso b_k \\
+    A_0 &:= a_{k-1} \dotso a_0 \\
+    B_0 &:= b_{k-1} \dotso b_0\text{,}
+  \end{align*}
+  i.e. there's no actual division or modulo operation being done.
+\item It's unclear to me what the difference between an assignment (\(←\))
+  and a definition (\(:=\)) is.
+\item It's probably better to name \(C_2\) as \(t\) and \(C_1\) as
+  \(C_2\) to be consistent with Toom-Cook.
+\end{itemize}
+
+I'd rewrite it as
+
+\begin{algorithm}
+  \caption{KaratsubaMultiply: Calculate \(C = A × B\), where \(a\) and
+    \(b\) are length-\(n\) slices containing the digits of \(A\) and
+    \(B\) respectively, and the length-\(2n\) array \(c\) containing
+    the digits of \(C\) will be output.}
+\begin{algorithmic}[1]
+\If {\(n < n_0\)}
+    \State return $\operatorname{BasecaseMultiply}(a, b)$
+\EndIf
+\State $k ← \lceil n / 2 \rceil$
+\State \((a_1, a_0) ← (a.\operatorname{slice}(k, n), a.\operatorname{slice}(0, k))\)
+\State \((b_1, b_0) ← (b.\operatorname{slice}(k, n), b.\operatorname{slice}(0, k))\)
+\State \((s_a, d_a) ← (\operatorname{sign}(a_0 - a_1), \lvert a_0 - a_1 \rvert)\)
+\State \((s_b, d_b) ← (\operatorname{sign}(b_0 - b_1), \lvert b_0 - b_1 \rvert)\)
+\State \(c_0 ← \operatorname{KaratsubaMultiply}(a_0, b_0)\)
+\State \(c_2 ← \operatorname{KaratsubaMultiply}(a_1, b_1)\)
+\State \(t_0 ← c_0 + c_2\)
+\State \(t_1 ← \operatorname{KaratsubaMultiply}(d_a, d_b)\)
+\If {\(s_a s_b > 0\)}
+\State \(t_0 ← t_0 - t_1\)
+\Comment guaranteed to be non-negative.
+\Else
+\State \(t_0 ← t_0 + t_1\)
+\EndIf
+\State return \(c_2 β^{2k} + t_0 β^k + c_0\)
+\end{algorithmic}
+\end{algorithm}
+
+\begin{problem}{8-9}
+\end{problem}
+
+\begin{solution}
+\end{solution}
+
+\end{document}
