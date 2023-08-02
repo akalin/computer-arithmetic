@@ -62,7 +62,7 @@
     master theorem} to get a running time of \(Θ(n^{\lg 3})\).
 \end{itemize}
 
-I'd rewrite it as
+I'd rewrite it as Algorithm~1 below.
 
 \begin{algorithm}
   \caption{KaratsubaMultiply: Calculate \(C = A × B\), where \(a\) and
@@ -97,7 +97,14 @@ I'd rewrite it as
 \end{algorithmic}
 \end{algorithm}
 
-\begin{problem}{8-9}
+\begin{problem}{Exercise~1.7}
+  Show that an auxiliary memory of \(2n + o(n)\) words is enough to
+  implement Karatsuba's algorithm in-place, for an \(\text{\(n\)-word}
+  × \text{\(n\)-word}\) product. In the polynomial case, prove that an
+  auxiliary space of \(n\) coefficients is enough, in addition to the
+  \(n + n\) coefficients of the input polynomials, and the \(2n - 1\)
+  coefficients of the product. [You can use the \(2n\) result words,
+  but must not destroy the \(n + n\) input words.]
 \end{problem}
 
 \begin{solution}
