@@ -126,4 +126,62 @@ Now we can specialize this to quadruple-word division by unrolling the loop.
 \end{algorithmic}
 \end{algorithm}
 
+The problem now is that although we're using the ``atomic'' operation
+DoubleWordDiv, we're still using a non-atomic operation for
+multiplication, since we're multiplying the double-word \(B\) with the
+single- or double-word \(Q_1\) and \(Q_0\).
+
+However, if we instead use DoubleWordDivRem, we can use the remainder
+to transform operations on \(B\) with operations on \(b_1\) and
+\(b_0\).
+
+For example, if \(Q_1, R_1 = DoubleWordDiv([r_3, r_2], b_1)\), then
+\[
+  b_1 * Q_1 + R_1 = [r_3, r_2]\text{,}
+\]
+so
+\begin{align*}
+  R &= [r_3, r_2, r_1, r_0] \\
+    &= (b_1 * Q_1 + R_1).leftShiftWords(2) + [r_1, r_0] \\
+    &= (b_1 * Q_1).leftShiftWords(2) + R_1.leftShiftWords(2) + [r_1, r_0] \\
+\end{align*}
+and with some algebra,
+\begin{align*}
+  R - B.leftShiftWords(1).mulDoubleWord(Q_1)
+  &= (b_1 * Q_1).lsw(2) + R_1.lsw(2) + [r_1, r_0] - B.lsw(1) * Q_1 \\
+  &= R_1.lsw(2) + [r_1, r_0] + ((b_1 * Q_1).lsw(2) - B.lsw(1) * Q_1) \\
+  &= R_1.lsw(2) + [r_1, r_0] + (b_1.lsw(2) - B.lsw(1)) * Q_1 \\
+  &= R_1.lsw(2) + [r_1, r_0] + (b_1.lsw(1) - B).lsw(1) * Q_1 \\
+  &= R_1.lsw(2) + [r_1, r_0] + (b_0 * Q_1).lsw(1)
+\end{align*}
+
+(\(Q_1\) is still potentially a double-word but not by much.)
+
+Then we have
+
+\begin{algorithm}
+  \caption{QuadrupleDivRem v2}
+  \begin{algorithmic}[1]
+\State \(r ← a.\operatorname{copy}()\)
+
+\State \(Q_1, ρ_1 ← \operatorname{DoubleWordDiv}([r_3, r_2], b_1)\)
+\State \(R ← ρ_1.lsw(2) + [r_1, r_0] + (b_0 * Q_1).lsw(1)\)
+\While {\(R < 0\)}
+\State \(Q_1 \mathrel{-}= 1\)
+\State \(R \mathrel{+}= B.\operatorname{leftShiftWords}(1)\)
+\EndWhile
+
+\State \(Q_0, ρ_0 ← \operatorname{DoubleWordDiv}([r_2, r_1], b_1)\)
+\State \(R ← ρ_0.lsw(1) + [r_1, r_0] + (b_0 * Q_0)\)
+\While {\(R < 0\)}
+\State \(Q_0 \mathrel{-}= 1\)
+\State \(R \mathrel{+}= B\)
+\EndWhile
+
+\State return \((Q_1.\operatorname{leftShiftWords}(1) + Q_0, r)\)
+\end{algorithmic}
+\end{algorithm}
+
+which is already pretty close to Alg.~1.8 in the book.
+
 \end{document}
