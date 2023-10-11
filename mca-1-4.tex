@@ -82,15 +82,47 @@ double-word, we could get rid of the initial if-statement:
     \State \(Q ← 0\)
 \State \(r ← a.\operatorname{copy}()\)
 \For {\(j\) from \(m-1\) down to \(0\)}
-\State \(t ← \operatorname{DoubleWordDiv}([a_{n+j}, a_{n + j - 1}], b_{n-1})\)
+\State \(t ← \operatorname{DoubleWordDiv}([r_{n+j}, r_{n + j - 1}], b_{n-1})\)
 \State \(R \mathrel{-}= B.\operatorname{leftShiftWords}(j).\operatorname{mulDoubleWord}(t)\)
 \While {\(R < 0\)}
 \State \(t \mathrel{-}= 1\)
 \State \(R \mathrel{+}= B.\operatorname{leftShiftWords}(j)\)
 \EndWhile
-\State \(Q = Q.\operatorname{leftShiftWords}(j) + t\)
+\State \(Q = Q.\operatorname{leftShiftWords}(1) + t\)
 \EndFor
 \State return \((Q, r)\)
+\end{algorithmic}
+\end{algorithm}
+
+Now we can specialize this to quadruple-word division by unrolling the loop.
+
+\begin{algorithm}
+  \caption{QuadrupleDivRem: Calculate \(Q\) and \(R\) such that
+    \(A = Q ⋅ B + R\) and \(0 ≤ R < B\), where \(b\) is a length-\(2\)
+    slice containing the digits of the positive normalized integer
+    \(B\), and \(a\) is a length-\(4\) slice
+    containing the digits of the non-negative integer \(A\). The
+    length-\(3\) array \(q\) containing the digits of \(Q\) and
+    the length-\(2\) array \(r\) containing the digits of \(R\) will
+    be output.}
+  \begin{algorithmic}[1]
+\State \(r ← a.\operatorname{copy}()\)
+
+\State \(Q_1 ← \operatorname{DoubleWordDiv}([r_3, r_2], b_1)\)
+\State \(R \mathrel{-}= B.\operatorname{leftShiftWords}(1).\operatorname{mulDoubleWord}(Q_1)\)
+\While {\(R < 0\)}
+\State \(Q_1 \mathrel{-}= 1\)
+\State \(R \mathrel{+}= B.\operatorname{leftShiftWords}(1)\)
+\EndWhile
+
+\State \(Q_0 ← \operatorname{DoubleWordDiv}([r_2, r_1], b_1)\)
+\State \(R \mathrel{-}= B.\operatorname{mulDoubleWord}(Q_0)\)
+\While {\(R < 0\)}
+\State \(Q_0 \mathrel{-}= 1\)
+\State \(R \mathrel{+}= B\)
+\EndWhile
+
+\State return \((Q_1.\operatorname{leftShiftWords}(1) + Q_0, r)\)
 \end{algorithmic}
 \end{algorithm}
 
