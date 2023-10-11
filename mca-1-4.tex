@@ -1,0 +1,72 @@
+\documentclass{computer-arithmetic}
+
+\usepackage{computer-arithmetic}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\begin{document}
+
+\section{Notes on Algorithm~1.6 and Algorithm~1.8}
+
+To derive Algorithm~1.8 (RecursiveDivRem), we basically do something
+similar as what we did with Karatsuba multiplication. For Karatsuba
+multiplication, we
+\begin{enumerate}
+\item took as given a function for single-word multiplication, which
+  takes in two words and returns their double-word product,
+\item wrote double-word multiplication, which takes in two
+  double-words and returns their quadruple-word product, in terms of
+  single-word multiplication,
+\item optimized the sequence of operations, and
+\item replaced the calls to single-word multiplication with recursive
+  calls, added a base case, and replaced 'words' with 'halves'.
+\end{enumerate}
+
+For recursive div-rem, we will
+\begin{enumerate}
+\item take as given a function for double-word division, which takes
+  in a double-word dividend, a single-word divisor, and returns their
+  double-word quotient and single-word remainder,
+\item write quadruple-word division, which takes in a quadruple-word
+  dividend, a double-word divisor, and returns their triple-word
+  quotient and double-word remainder, in terms of double-word
+  division,
+\item optimize the sequence of operations, and
+\item replace the calls to double-word division with recursive calls,
+  add a base case, and replace 'words' with 'halves'.
+\end{enumerate}
+
+We start by rewriting Algorithm~1.6 like so:
+
+\begin{algorithm}
+  \caption{BasecaseDivRem: Calculate \(Q\) and \(R\) such that
+    \(A = Q ⋅ B + R\) and \(0 ≤ R < B\), where \(b\) is a length-\(n\)
+    slice containing the digits of the positive normalized integer
+    \(B\), and \(a\) is a length-\((n + m)\) (\(m ≥ 0\)) slice
+    containing the digits of the non-negative integer \(A\). The
+    length-\((m+1)\) array \(q\) containing the digits of \(Q\) and
+    the length-\(n\) array \(r\) containing the digits of \(R\) will
+    be output.}
+  \begin{algorithmic}[1]
+    \State \(q ← \operatorname{NewArray}(\operatorname{fill}=0, \operatorname{length}=m + 1)\)
+\State \(r ← a.\operatorname{copy}()\)
+\If {\(A ≥ B.\operatorname{leftShiftWords}(m)\)}
+\State \(q_m ← 1\)
+\State \(R \mathrel{-}= B.\operatorname{leftShiftWords}(m)\)
+\Else
+\State \(q_m ← 0\)
+\EndIf
+\For {\(j\) from \(m-1\) down to \(0\)}
+\State \(q_j ← \operatorname{SaturatingWordDiv}(a_{n+j}, a_{n + j - 1}, b_{n-1})\)
+\Comment Returns the max word value on overflow
+\State \(R \mathrel{-}= B.\operatorname{leftShiftWords}(j).\operatorname{mulWord}(q_j)\)
+\While {\(A < 0\)}
+\State \(q_j \mathrel{-}= 1\)
+\State \(R \mathrel{+}= B.\operatorname{leftShiftWords}(j)\)
+\EndWhile
+\EndFor
+\State return \((q, r)\)
+\end{algorithmic}
+\end{algorithm}
+
+\end{document}
