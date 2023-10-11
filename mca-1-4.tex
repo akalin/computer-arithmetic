@@ -57,15 +57,40 @@ We start by rewriting Algorithm~1.6 like so:
 \State \(q_m ← 0\)
 \EndIf
 \For {\(j\) from \(m-1\) down to \(0\)}
-\State \(q_j ← \operatorname{SaturatingWordDiv}(a_{n+j}, a_{n + j - 1}, b_{n-1})\)
+\State \(q_j ← \operatorname{ClampedDoubleWordDiv}([r_{n+j}, r_{n + j - 1}], b_{n-1})\)
 \Comment Returns the max word value on overflow
 \State \(R \mathrel{-}= B.\operatorname{leftShiftWords}(j).\operatorname{mulWord}(q_j)\)
-\While {\(A < 0\)}
+\While {\(R < 0\)}
 \State \(q_j \mathrel{-}= 1\)
 \State \(R \mathrel{+}= B.\operatorname{leftShiftWords}(j)\)
 \EndWhile
 \EndFor
 \State return \((q, r)\)
+\end{algorithmic}
+\end{algorithm}
+
+The clamped double-word division is necessary in order to guarantee a
+single-word output. However, if we didn't clamp, the while loop in
+lines 12-14 would still guarantee that \(q_j\) fit in a single word,
+(at the expense of performance guarantees, but we won't worry about
+that yet). If we're also willing to let the first iteration produce a
+double-word, we could get rid of the initial if-statement:
+
+\begin{algorithm}
+  \caption{BasecaseDivRem v2}
+  \begin{algorithmic}[1]
+    \State \(Q ← 0\)
+\State \(r ← a.\operatorname{copy}()\)
+\For {\(j\) from \(m-1\) down to \(0\)}
+\State \(t ← \operatorname{DoubleWordDiv}([a_{n+j}, a_{n + j - 1}], b_{n-1})\)
+\State \(R \mathrel{-}= B.\operatorname{leftShiftWords}(j).\operatorname{mulDoubleWord}(t)\)
+\While {\(R < 0\)}
+\State \(t \mathrel{-}= 1\)
+\State \(R \mathrel{+}= B.\operatorname{leftShiftWords}(j)\)
+\EndWhile
+\State \(Q = Q.\operatorname{leftShiftWords}(j) + t\)
+\EndFor
+\State return \((Q, r)\)
 \end{algorithmic}
 \end{algorithm}
 
