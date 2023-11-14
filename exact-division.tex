@@ -107,6 +107,92 @@ plus at most \(m\) single-word modular multiplications, \(n × 1\)
 multiplications, and subtractions, so \(O(mn)\). This isn't that much
 better than basecase division, but we can do better.
 
+\subsection{Hensel lifting for modular inverses}
+
+The idea of Hensel lifting is that if you know the inverse of \(B\)
+mod~\(n\), you can use that to efficiently compute the of \(B\)
+mod~\(n^2\). First I'll prove the method, then I'll motivate it.
+
+\begin{mdframed}
+\strong{Theorem}: Let \(\gcd(B, n) = 1\), and let \(B'\) be the
+inverse of \(B\) mod~\(n\). \(BB' ≡ 1 \pmod n\). Then
+\[
+  B(B'(2 - BB')) ≡ 1 \pmod{n^2}\text{,}
+\]
+i.e. \(B'(2 - BB')\) is the inverse of \(B\) mod~\(n^2\).
+
+\begin{proof}
+  Since \(BB' ≡ 1 \pmod n\), then \(n \mid (BB' - 1)\), i.e.
+  \(BB' - 1 = kn\) for some \(k\), and thus \(BB' = 1 + kn\). Then
+  \begin{align*}
+    BB'(2 - BB')
+    &= (1 + kn)(2 - (1 + kn)) \\
+    &= (1 + kn)(1 - kn) \\
+    &= 1^2 - k^2n^2 \\
+    &≡ 1 \pmod{n^2}\text{.} \qedhere
+  \end{align*}
+\end{proof}
+\end{mdframed}
+
+Okay, so where did \(B'(2 - BB')\) come from? Here's a heuristic
+argument. Let's say we're working over floats or reals, and given
+\(B\) we want to compute \(1/B\) via Newton's method. We use the
+function
+\[
+  f(x) = 1/x - B
+\]
+with derivative
+\[
+  f'(x) = -1/x^2\text{,}
+\]
+and we want to approximate one of its roots. If we have an
+approximation \(x_n\), then we want to add some \(ε\) to get a better
+approximation \(x_{n + 1} = x_n + ε\). Computing, we get
+\begin{align*}
+  f(x_{n + 1}) &= f(x_n + ε) \\
+               &= f(x_n) + ε f'(x_n) + O(ε^2) \\
+               &≈ f(x_n) + ε f'(x_n) \\
+               &≈ 0\text{.}
+\end{align*}
+so
+\begin{align*}
+  ε &≈ -\frac{f(x_n)}{f'(x_n)} \\
+    &= -\frac{1/x_n - B}{-1/x_n^2} \\
+    &= x_n - B x_n^2 \\
+    &= x_n(1 - B x_n)\text{,}
+\end{align*}
+and thus
+\begin{align*}
+  x_{n +_1} &= x_n + x_n(1 - B x_n) \\
+          &= x_n(2 - B x_n)\text{,}
+\end{align*}
+although for floating point reasons it might be better to keep it as a
+sum.
+
+Now imagine that instead of working with reals and real division,
+we're working mod~\(n\) with modular inversion. If we have a solution
+\(x_k\) to \(f(x)\) mod~\(n\), i.e. an inverse of \(B\) mod~\(n\),
+then we want to add some \(nε\) to \(x_n\) to get a
+solution \(x_{k+1} = x_k + nε\) mod~\(n^2\). Computing, we get
+\begin{align*}
+  f(x_{k+1}) &= f(x_k + nε) \\
+             &= f(x_k) + nε \, f'(x_k) + n^2ε^2(⋯) \\
+             &≡ f(x_k) + nε \, f'(x_k) \pmod{n^2} \\
+             &≡ 0 \pmod{n^2} \text{.}
+\end{align*}
+Note that instead of taking approximations, we're modding out by
+\(n^2\), so we still have equality mod~\(n^2\), although it's not
+clear what taking the Taylor series ``means'' over the integers, which
+is why this is a heuristic argument.\footnote{This could probably be
+  made rigorous over the \(p\)-adics.} Continuing,
+\begin{align*}
+  nε &≡ -\frac{f(x_k)}{n f'(x_k)} \pmod{n^2} \\
+    &≡ x_k(1 - B x_k)\text{,}
+\end{align*}
+and the rest of the analysis goes through. This is what is meant in
+the text when the author says that Hensel lifting is a ``\(p\)-adic
+version'' of Newton's method.
+
 \subsection{What does exact division do if the precondition is violated?}
 
 Remove the \(b \mid a\), and let
