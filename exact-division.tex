@@ -150,6 +150,17 @@ Then given \(A\) such that \(B \mid A\), we can compute
 \(AB' \pmod{β^k}\), which by the previous discussion is equal to the
 quotient \(A/B\).
 
+Now this is starting to look like most of Algorithm~1.10 of [MCA]. The
+main difference is that instead of using moduli \(β\), \(β^2\),
+\(β^{2^i}\), he chooses
+\(β, \dotsc, β^{⌈ k/2^i ⌉}, \dotsc β^{⌈ k/4 ⌉}, β^{\lceil k/2 ⌉}\) to
+avoid overshooting \(β^k\) by too much. We can account for this by
+extending the statement of theorem above to use \(β^k\) instead of
+\(n\), and then we can prove the theorem for any \(β^{k+c}\) where
+\(c ≤ k\).
+
+\subsection{Hensel lifting and Newton's method}
+
 Okay, so where did \(B'(2 - BB')\) come from? Here's a heuristic
 argument. Let's say we're working over floats or reals, and given
 \(B\) we want to compute \(1/B\) via Newton's method. We use the
