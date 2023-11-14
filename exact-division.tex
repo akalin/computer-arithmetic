@@ -134,6 +134,22 @@ i.e. \(B'(2 - BB')\) is the inverse of \(B\) mod~\(n^2\).
 \end{proof}
 \end{mdframed}
 
+So using this theorem, we can compute the modular inverse of \(B\) in
+\(\lg k\) steps, where \(k\) is the size of \(B\):
+
+\begin{enumerate}
+\item First, Compute the inverse \(B'_1\) of \(B\) mod~\(β\), which
+  turns out to be just the inverse of \(b_0\) mod~\(β\).
+\item Use the method above to compute the inverse \(B'_2\) of \(B\)
+  mod~\(β^2\).
+\item Repeat for \(β^4\), \(β^8\), etc. until we reach or exceed
+  \(β^k\), at which point we have the inverse \(B'\) mod \(β^k\).
+\end{enumerate}
+
+Then given \(A\) such that \(B \mid A\), we can compute
+\(AB' \pmod{β^k}\), which by the previous discussion is equal to the
+quotient \(A/B\).
+
 Okay, so where did \(B'(2 - BB')\) come from? Here's a heuristic
 argument. Let's say we're working over floats or reals, and given
 \(B\) we want to compute \(1/B\) via Newton's method. We use the
