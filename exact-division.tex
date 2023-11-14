@@ -102,6 +102,11 @@ quotient. This leads us to
 \end{algorithmic}
 \end{algorithm}
 
+Looking at the algorithm, we do a single two-word modular inverse,
+plus at most \(m\) single-word modular multiplications, \(n × 1\)
+multiplications, and subtractions, so \(O(mn)\). This isn't that much
+better than basecase division, but we can do better.
+
 \subsection{What does exact division do if the precondition is violated?}
 
 Remove the \(b \mid a\), and let
