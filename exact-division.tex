@@ -1,0 +1,121 @@
+\documentclass{computer-arithmetic}
+
+\usepackage{computer-arithmetic}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\begin{document}
+
+\section{Notes on Exact Division}
+
+The problem of exact division is to, given a non-negative integer
+\(a\) and a positive integer \(b \mid a\), compute the integer \(q\)
+such that \(a = qb\).
+
+Any division algorithm can compute this, but computing the remainder
+is wasted work, so maybe we can do something faster using the
+\(b \mid a\). Note that a division algorithm that returns only the
+quotient gets us most of the way there, but ``remainder is 0'' is a
+stronger precondition than ``remainder is unused'', so there's still
+room for improvement.
+
+The first key insight is that we can reduce this problem to the
+problem of modular inversion. Since \(a = qb\), for any modulus \(n\),
+\[
+  a ≡ qb \pmod n\text{,}
+\]
+and if \(b\) has a modular inverse \(b'\) mod~\(n\), then
+\[
+  q ≡ ab' \pmod n\text{.}
+\]
+If \(n\) is large enough, which we can guarantee since we know the
+size of \(a\) and \(b\), then \(q \bmod n = q\).
+
+The assumption that \(b\) has an inverse mod~\(n\) isn't a serious
+obstacle. \(b\) has an inverse mod~\(n\) iff \(\gcd(b, n) =
+1\). Therefore, if \(b\) doesn't have an inverse mod~\(n\), then let
+\(m = \gcd(b, n)\), which is greater than \(1\). But since
+\(b \mid a\), \(m\) must also be a factor of \(a\), and we can divide
+both \(a\) and \(b\) by \(m\). If \(n = β^k\) and \(β\) is a prime
+power (e.g., \(β = 2^l\)), then \(m\) must also be a power of the
+prime base, and division by \(m\) reduces to shifting. At worst, we'd
+have to do two short divisions, which might be better than a long
+division.
+
+Now then what should we pick for \(n\)? A natural choice would be a
+power of \(β\). In particular, if \(b\) has size \(n'\) and \(a\) has
+size \(m + n'\), then we know that \(q\) has size at most \(m + 1\),
+so we can set \(n = β^{m+1}\).
+
+\subsection{Computing inverses mod \(β^k\) and Jebelean's exact division algorithm}
+
+So now the problem is reduced to, given \(b\) such that
+\(\gcd(b, β^k) = 1\), compute \(b'\) such that \(bb' ≡ 1 \pmod
+β^k\). We'll see in later sections, but the most straightforward
+algorithm is the extended GCD algorithm. However, the first step of
+that would be to compute \(\operatorname{divmod}(β^k, b)\), which
+doesn't seem to be that much better than computing \(a/b\)!
+
+The next insight is to start with finding the lowest word of the
+quotient. Using the example from
+\url{https://gmplib.org/manual/Exact-Division}, let \(A = 368154\) and
+\(B = 543\). We want to find \(Q\) such that \(A = QB\). Now reduce
+everything mod~\(10\), and we get \(A ≡ QB \pmod{10}\), which is
+\[
+  4 ≡ q_0 3 \pmod{10}\text{,}
+\]
+where \(q_0\) is the lowest digit. Then multiply both sides by \(7\) the
+inverse of \(3\) \(\pmod{10}\) to get
+\[
+  q_0 ≡ 4 ⋅ 7 ≡ 8 \pmod{10}\text{.}
+\]
+Then subtract \(8B\) from \(A\) to get
+\[
+  368154 - 8 ⋅ 543 = 368154 - 4344 = 353810\text{,}
+\]
+Note that the result now has \(0\) as the lowest digit. Now we can
+repeat the same process with the next digit until we have the full
+quotient. This leads us to
+\href{https://www.sciencedirect.com/science/article/pii/S0747717183710126}{Jebelean's
+  exact division algorithm}:
+
+\begin{algorithm}
+  \caption{JebeleanExactDivision: Calculate \(Q\) such that
+    \(A = Q ⋅ B\), where \(b\) is a length-\(n\) slice containing the
+    digits of the positive integer \(B\), \(a\) is a
+    length-\((n + m)\) (\(m ≥ 0\)) slice containing the digits of the
+    non-negative integer \(A\), \(B \mid A\), and
+    \(\gcd(b_0, β) = 1\). Returns the array \(q\) containing the
+    digits of \(Q\).}
+  \begin{algorithmic}[1]
+    \State \(q ← \operatorname{NewArray}()\)
+    \State \(r ← a.\operatorname{copy}()\)
+    \State \(b' ← \operatorname{modInv}(b_0, β)\)
+    \While {\(R > 0\)}
+    \State \(t ← (r_0 ⋅ b') \bmod β\)
+    \State \(q.\operatorname{push}(t)\)
+    \State \(R \mathrel{-}= B ⋅ t\)
+    \Comment Lowest word of \(R\) should now be \(0\)
+    \State \(R.\operatorname{rightShiftWords}(1)\)
+    \EndWhile
+    \State return \(q\)
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{What does exact division do if the precondition is violated?}
+
+Remove the \(b \mid a\), and let
+\((q, r) = \operatorname{divmod}(a, b)\), so that \(a = qb + r\). Then
+for any modulus \(n\),
+\[
+  a ≡ qb + r \pmod n\text{,}
+\]
+and if \(b\) has a modular inverse \(b'\) mod~\(n\), which only
+happens if \(\gcd(b, n) = 1\), then
+\[
+  q ≡ ab' - rb' \pmod n\text{,}
+\]
+so the quotient that we get will be off by an additive factor of
+\(-rb'\) (mod~\(n\)).
+
+\end{document}
