@@ -220,6 +220,29 @@ and the rest of the analysis goes through. This is what is meant in
 the text when the author says that Hensel lifting is a ``\(p\)-adic
 version'' of Newton's method.
 
+\subsection{The Karp-Markstein trick}
+
+Okay, so the previous discussion explains all but the last couple of
+lines of Algorithm~1.10. But this part is relatively simple. From
+reading Sec.~4 of the
+\href{https://dl.acm.org/doi/pdf/10.1145/279232.279237}{Karp-Markstein
+  paper}, the idea is to avoid having to do a full-precision multiply
+of \(A\) by the final approximation \(x_{n+1} ≡ 1/B\) to get
+\(A/B\). To avoid that, they instead do a multiplication of \(A\) by
+the half-precision second-to-final approximation \(x_n\), and then do
+a single round of Newton's method for computing \(A/B\). That round
+multiplies \(x_n\) by \(B - Ay_n\) instead of \(A\), which is much
+smaller.
+
+In the context of exact division, we have \(C\) which is the inverse
+of \(B\) mod \(β^k\) where \(k = ⌈n/2⌉\), so we compute
+\(AC \bmod β^k\) to get \(Q \bmod β^k\). We then do one round of
+Hensel lifting to get \(Q \bmod β^n\), which is our desired
+result. That way, instead of doing a multiplication of \(A\) and \(C\)
+mod~\(β^n\), we do a multiplication of \(A\) and \(C\) mod~\(β^k\),
+which is half the width, and then multiply \(C\) by \(A - BQ\) which
+is maybe easier (?).
+
 \subsection{What does exact division do if the precondition is violated?}
 
 Remove the \(b \mid a\), and let
